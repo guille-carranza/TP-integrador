@@ -2,7 +2,7 @@
 #include<cstring>
 using namespace std;
 
-//Ordena lo que dejÛ el sistema viejo: arma la lista de mozos numerados con su comisiÛn, separa las ventas por dÌa (con el n˙mero de mozo y ordenadas por mozo) y deja el stock al dÌa.
+//Ordena lo que dej√≥ el sistema viejo: arma la lista de mozos numerados con su comisi√≥n, separa las ventas por d√≠a (con el n√∫mero de mozo y ordenadas por mozo) y deja el stock al d√≠a.
 //Lee comandas_historicas.dat, inventario.dat y genera mozos.dat, comandas_dd-mm-aaaa.dat, inventario.dat
 
 //Lista con mozo (cada uno una sola vez). Una clave como identificador y comision
@@ -40,9 +40,13 @@ Nodo* crearNodo(mozo valor);
 void insertarOrdenado(Nodo*&inicio, mozo valor);
 void crearArchivo(Nodo*&inicio);
 Nodo*buscarElemento(Nodo*inicio, char nombre[]);
+void crearContrase√±a(mozo &valor);
 
 int main()
 {
+    Nodo*lista=NULL;
+    copiarArchivo(lista);
+    crearArchivo(lista);
     return 0;
 }
 
@@ -89,6 +93,7 @@ while(fread(&arr, sizeof(comandasHistoricas),1,archivo)==1){
     strcpy(aux.nombre , arr.nombreMozo);
     aux.id_mozo=i;
     aux.comision=arr.comision;
+    crearContrase√±a(aux);
     insertarOrdenado(inicio, aux);
    }
    else
@@ -97,6 +102,9 @@ while(fread(&arr, sizeof(comandasHistoricas),1,archivo)==1){
    }
 }
     fclose(archivo);
+}
+else{
+    cout<<"No se pudo abrir el archivo"<<endl;
 }
 }
 
@@ -132,4 +140,27 @@ Nodo*buscarElemento(Nodo*inicio, char nombre[])
         actual=actual->sig;
     }
     return NULL; //no se encontro
+}
+
+void crearContrase√±a(mozo &valor)
+{
+    char contra[20];
+    char*asigno=contra;
+
+    for(int i=0;i<6;i++)
+    {
+        if((i%2)==0)
+        {
+        asigno[i]=valor.nombre[i]+4; //Si el nombre es corto me tira un dato random
+        }
+        else if(i<=3)
+        {
+            asigno[i]=(valor.id_mozo*2);
+        }
+        else{
+            asigno[i]=valor.id_mozo+17;
+        }
+    }
+    contra[6]='\0';
+    strcpy(valor.password,contra);
 }
