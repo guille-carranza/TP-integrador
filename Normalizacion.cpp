@@ -149,17 +149,37 @@ void crearContraseña(mozo &valor)
 
     for(int i=0;i<6;i++)
     {
-        if((i%2)==0)
+        if(i==0)
         {
-        asigno[i]=valor.nombre[i]+4; //Si el nombre es corto me tira un dato random
+        asigno[i]=valor.nombre[i]; //Inicial del nombre
         }
-        else if(i<=3)
+        else if(i==1)
         {
-            asigno[i]=(valor.id_mozo*2);
+            int j=0;
+            while(valor.nombre[j+1]!='\0')
+            {
+                j++;
+            }
+            asigno[i]=valor.nombre[j]; //Ultima letra del nombre
         }
-        else{
-            asigno[i]=valor.id_mozo+17;
+        else if(i==2)
+        {
+            asigno[i]='A'+(valor.id_mozo+3);//Caracter random
         }
+        else if(i==3){
+            asigno[i]='0'+valor.id_mozo%7; //de 0 a 6
+        }
+        else if(i==4){
+            asigno[i]='0'+valor.id_mozo%9; //de 0 a 8
+        }
+        else
+        {
+            asigno[i]=valor.nombre[i-2]; //Caracter random del nombre
+        }
+    }
+    for(int i=0; i<6; i++)
+    {
+        asigno[i]=asigno[i]+5; //desplazo 5 posiciones para guardarla en el registro
     }
     contra[6]='\0';
     strcpy(valor.password,contra);
