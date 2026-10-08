@@ -7,3 +7,7 @@
 build/
 /*.dat
 .claude/
+bin/
+obj/
+*.depend
+*.layout

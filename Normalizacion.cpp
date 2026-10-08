@@ -40,13 +40,15 @@ Nodo* crearNodo(mozo valor);
 void insertarOrdenado(Nodo*&inicio, mozo valor);
 void crearArchivo(Nodo*&inicio);
 Nodo*buscarElemento(Nodo*inicio, char nombre[]);
-void crearContraseña(mozo &valor);
+void crearContrasena(mozo &valor);
+void mostrarArchivo();
 
 int main()
 {
     Nodo*lista=NULL;
     copiarArchivo(lista);
     crearArchivo(lista);
+    mostrarArchivo();
     return 0;
 }
 
@@ -93,7 +95,7 @@ while(fread(&arr, sizeof(comandasHistoricas),1,archivo)==1){
     strcpy(aux.nombre , arr.nombreMozo);
     aux.id_mozo=i;
     aux.comision=arr.comision;
-    crearContraseña(aux);
+    crearContrasena(aux);
     insertarOrdenado(inicio, aux);
    }
    else
@@ -142,7 +144,7 @@ Nodo*buscarElemento(Nodo*inicio, char nombre[])
     return NULL; //no se encontro
 }
 
-void crearContraseña(mozo &valor)
+void crearContrasena(mozo &valor)
 {
     char contra[20];
     char*asigno=contra;
@@ -167,20 +169,40 @@ void crearContraseña(mozo &valor)
             asigno[i]='A'+(valor.id_mozo+3);//Caracter random
         }
         else if(i==3){
-            asigno[i]='0'+valor.id_mozo%7; //de 0 a 6
+            asigno[i]='0'+(valor.id_mozo*3)%7; //de 0 a 6
         }
         else if(i==4){
-            asigno[i]='0'+valor.id_mozo%9; //de 0 a 8
+            asigno[i]='0'+(13*valor.id_mozo)%9; //de 0 a 8
         }
         else
         {
-            asigno[i]=valor.nombre[i-2]; //Caracter random del nombre
+            asigno[i]=valor.nombre[1]; //2da letra del nombre
         }
     }
+    contra[6]='\0';
+    cout<<"La contrasena del mozo de ID "<<valor.id_mozo<<" es :"<<contra<<endl;
     for(int i=0; i<6; i++)
     {
         asigno[i]=asigno[i]+5; //desplazo 5 posiciones para guardarla en el registro
     }
-    contra[6]='\0';
     strcpy(valor.password,contra);
+}
+void mostrarArchivo()
+{
+    mozo aux;
+    FILE*archivo=fopen("mozos.dat","rb");
+    if(archivo==NULL)
+    {
+        cout<<"No se pudo abrir mozos.dat"<<endl;
+    }
+    else{
+        while(fread(&aux, sizeof(mozo), 1, archivo)==1)
+        {
+            cout<<"Nombre: "<<aux.nombre<<endl;
+            cout<<"Comision: "<<aux.comision<<endl;
+            cout<<"ID: "<<aux.id_mozo<<endl;
+            cout<<"Contrasena guardada en el archivo: "<<aux.password<<endl;
+        }
+    }
+    fclose(archivo);
 }
