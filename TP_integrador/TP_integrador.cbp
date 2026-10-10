@@ -19,7 +19,7 @@
 				<Option compiler="gcc-mingw64" />
 			</Target>
 		</Build>
-		<Unit filename="main.cpp" />
+		<Unit filename="../Normalizacion.cpp" />
 		<Extensions />
 	</Project>
 </CodeBlocks_project_file>
