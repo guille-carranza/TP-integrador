@@ -41,7 +41,7 @@ void insertarOrdenado(Nodo*&inicio, mozo valor);
 void crearArchivo(Nodo*&inicio);
 Nodo*buscarElemento(Nodo*inicio, char nombre[]);
 void crearContrasena(mozo &valor);
-void mostrarArchivo();
+//void mostrarArchivo(); //funcion opcional para verificar si se guardo bien el archivo mozos.dat
 
 int main()
 {
@@ -151,35 +151,42 @@ void crearContrasena(mozo &valor)
 
     for(int i=0;i<6;i++)
     {
-        if(i==0)
-        {
+        switch(i){
+
+        case 0:
         asigno[i]=valor.nombre[i]; //Inicial del nombre
-        }
-        else if(i==1)
-        {
+        break;
+
+        case 1:
+            {
             int j=0;
             while(valor.nombre[j+1]!='\0')
             {
                 j++;
             }
             asigno[i]=valor.nombre[j]; //Ultima letra del nombre
-        }
-        else if(i==2)
-        {
+            break;
+            }
+        case 2:
             asigno[i]='A'+(valor.id_mozo+3);//Caracter random
-        }
-        else if(i==3){
+            break;
+
+        case 3:
             asigno[i]='0'+(valor.id_mozo*3)%7; //de 0 a 6
-        }
-        else if(i==4){
+            break;
+
+        case 4:
             asigno[i]='0'+(13*valor.id_mozo)%9; //de 0 a 8
-        }
-        else
-        {
+            break;
+
+        case 5:
             asigno[i]=valor.nombre[1]; //2da letra del nombre
-        }
+            break;
+        case 6:
+            contra[6]='\0';
+            break;
     }
-    contra[6]='\0';
+    }
     cout<<"La contrasena del mozo de ID "<<valor.id_mozo<<" es :"<<contra<<endl;
     for(int i=0; i<6; i++)
     {
@@ -187,6 +194,7 @@ void crearContrasena(mozo &valor)
     }
     strcpy(valor.password,contra);
 }
+
 void mostrarArchivo()
 {
     mozo aux;
@@ -206,3 +214,4 @@ void mostrarArchivo()
     }
     fclose(archivo);
 }
+
