@@ -48,7 +48,7 @@ int main()
     Nodo*lista=NULL;
     copiarArchivo(lista);
     crearArchivo(lista);
-    mostrarArchivo();
+    //mostrarArchivo(); //Funcion opcional para verificar si se guardaron bien los mozos en mozos.dat
     return 0;
 }
 
