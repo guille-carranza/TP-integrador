@@ -1,5 +1,6 @@
 *.exe
 *.out
+*.o
 /normalizacion
 /ventas
 /cierre
@@ -11,4 +12,3 @@ bin/
 obj/
 *.depend
 *.layout
-*.o
