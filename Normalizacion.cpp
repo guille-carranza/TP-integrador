@@ -41,7 +41,7 @@ void insertarOrdenado(Nodo*&inicio, mozo valor);
 void crearArchivo(Nodo*&inicio);
 Nodo*buscarElemento(Nodo*inicio, char nombre[]);
 void crearContrasena(mozo &valor);
-//void mostrarArchivo(); //funcion opcional para verificar si se guardo bien el archivo mozos.dat
+void mostrarArchivo(); //funcion opcional para verificar si se guardo bien el archivo mozos.dat
 
 int main()
 {
