@@ -1,5 +1,6 @@
 #include<iostream>
 #include<cstring>
+#include<cstdio>
 using namespace std;
 
 //Ordena lo que dejó el sistema viejo: arma la lista de mozos numerados con su comisión, separa las ventas por día (con el número de mozo y ordenadas por mozo) y deja el stock al día.
@@ -35,6 +36,16 @@ struct Nodo{
     Nodo* sig;
 };
 
+struct NodoFecha{
+    char fecha[11];
+    NodoFecha* sig;
+};
+
+struct NodoComanda{
+    comanda info;
+    NodoComanda* sig;
+};
+
 void copiarArchivo(Nodo*&inicio);
 Nodo* crearNodo(mozo valor);
 void insertarOrdenado(Nodo*&inicio, mozo valor);
@@ -42,15 +53,25 @@ void crearArchivo(Nodo*&inicio);
 Nodo*buscarElemento(Nodo*inicio, char nombre[]);
 void crearContrasena(mozo &valor);
 void mostrarArchivo(); //funcion opcional para verificar si se guardo bien el archivo mozos.dat
+int buscarIdMozo(const char nombre[]);                    // paso 1
+void agregarFecha(NodoFecha*& inicio, const char fecha[]); // paso 2
+NodoFecha* obtenerFechas();
+void insertarComanda(NodoComanda*& inicio, comanda c);
+void generarPlanilla(const char fecha[]);
+void generarPlanillas();
 
 int main()
 {
+
     Nodo*lista=NULL;
     copiarArchivo(lista);
     crearArchivo(lista);
+    generarPlanillas();
     //mostrarArchivo(); //Funcion opcional para verificar si se guardaron bien los mozos en mozos.dat
     return 0;
 }
+
+
 
 Nodo*crearNodo(mozo valor)
 {
@@ -213,5 +234,127 @@ void mostrarArchivo()
         }
     }
     fclose(archivo);
+}
+
+int buscarIdMozo(const char nombre[])
+{
+    int id=-1;
+    mozo m;
+    FILE* f=fopen("mozos.dat","rb");
+    if(f==NULL) return -1;
+    while(fread(&m,sizeof(mozo),1,f)==1)
+    {
+        if(strcmp(m.nombre,nombre)==0)
+        {
+            id=m.id_mozo;
+            break;
+        }
+    }
+    fclose(f);
+    return id;
+}
+
+void agregarFecha(NodoFecha*& inicio, const char fecha[])
+{
+    NodoFecha* act=inicio;
+    while(act!=NULL)
+    {
+        if(strcmp(act->fecha,fecha)==0) return; // ya estaba, no la repito
+        act=act->sig;
+    }
+    NodoFecha* nuevo=new NodoFecha();
+    strcpy(nuevo->fecha,fecha);
+    nuevo->sig=inicio;
+    inicio=nuevo;
+}
+
+NodoFecha* obtenerFechas()
+{
+    NodoFecha* lista=NULL;
+    comandasHistoricas h;
+    FILE* f=fopen("comandas_historicas.dat","rb");
+    if(f==NULL)
+    {
+        cout<<"No se pudo abrir comandas_historicas.dat"<<endl;
+        return NULL;
+    }
+    while(fread(&h,sizeof(comandasHistoricas),1,f)==1)
+    {
+        agregarFecha(lista,h.fecha);
+    }
+    fclose(f);
+    return lista;
+}
+
+void insertarComanda(NodoComanda*& inicio, comanda c)
+{
+    NodoComanda* nuevo=new NodoComanda();
+    nuevo->info=c;
+    nuevo->sig=NULL;
+    if(inicio==NULL || c.id_mozo < inicio->info.id_mozo)
+    {
+        nuevo->sig=inicio;
+        inicio=nuevo;
+    }
+    else
+    {
+        NodoComanda* act=inicio;
+        while(act->sig!=NULL && act->sig->info.id_mozo <= c.id_mozo)
+        {
+            act=act->sig;
+        }
+        nuevo->sig=act->sig;
+        act->sig=nuevo;
+    }
+}
+
+void generarPlanilla(const char fecha[])
+{
+    NodoComanda* lista=NULL;
+    comandasHistoricas h;
+    FILE* f=fopen("comandas_historicas.dat","rb");
+    if(f==NULL) return;
+
+    while(fread(&h,sizeof(comandasHistoricas),1,f)==1)
+    {
+        if(strcmp(h.fecha,fecha)==0)
+        {
+            comanda c;
+            c.id_mozo=buscarIdMozo(h.nombreMozo);
+            c.codigoProducto=h.codigoProducto;
+            c.cantidad=h.cantidad;
+            c.comision=h.comision;
+            insertarComanda(lista,c);
+        }
+    }
+    fclose(f);
+
+    char nombreArchivo[40];
+    sprintf(nombreArchivo,"comandas_%s.dat",fecha);
+    FILE* out=fopen(nombreArchivo,"wb");
+
+    while(lista!=NULL)
+    {
+        if(out!=NULL)
+        {
+            fwrite(&lista->info,sizeof(comanda),1,out);
+        }
+        NodoComanda* temp=lista;
+        lista=lista->sig;
+        delete temp;
+    }
+    if(out!=NULL) fclose(out);
+}
+
+void generarPlanillas()
+{
+    NodoFecha* fechas=obtenerFechas();
+    while(fechas!=NULL)
+    {
+        generarPlanilla(fechas->fecha);
+        NodoFecha* temp=fechas;
+        fechas=fechas->sig;
+        delete temp;
+    }
 }
 
