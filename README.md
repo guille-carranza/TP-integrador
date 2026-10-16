@@ -86,7 +86,7 @@ plano). Es la única forma de conocerla, porque en `mozos.dat` queda cifrada.
 |---|---|
 | `normalizacion.cpp` — lista de mozos y comisión acumulada | guille-carranza |
 | `normalizacion.cpp` — planillas por día y actualización de stock | ruben-escobar |
-| `ventas.cpp` | crisserpe |
+| `ventas.cpp` | crisserpa |
 | `cierre.cpp` | mirkcr |
 | `resumen.cpp` | tbaron05 |
 
