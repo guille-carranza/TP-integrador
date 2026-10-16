@@ -203,11 +203,9 @@ void crearContrasena(mozo &valor)
         case 5:
             asigno[i]=valor.nombre[1]; //2da letra del nombre
             break;
-        case 6:
-            contra[6]='\0';
-            break;
     }
     }
+    contra[6]='\0';
     cout<<"La contrasena del mozo de ID "<<valor.id_mozo<<" es :"<<contra<<endl;
     for(int i=0; i<6; i++)
     {
