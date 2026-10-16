@@ -46,6 +46,13 @@ struct NodoComanda{
     NodoComanda* sig;
 };
 
+struct Producto{
+    int codigo;
+    char descripcion[50];
+    float precio;
+    int stockActual;
+};
+
 void copiarArchivo(Nodo*&inicio);
 Nodo* crearNodo(mozo valor);
 void insertarOrdenado(Nodo*&inicio, mozo valor);
@@ -59,6 +66,8 @@ NodoFecha* obtenerFechas();
 void insertarComanda(NodoComanda*& inicio, comanda c);
 void generarPlanilla(const char fecha[]);
 void generarPlanillas();
+long buscarProducto(FILE* f, int codigo, Producto& p);
+void actualizarStock();
 
 int main()
 {
@@ -67,6 +76,7 @@ int main()
     copiarArchivo(lista);
     crearArchivo(lista);
     generarPlanillas();
+    actualizarStock();
     //mostrarArchivo(); //Funcion opcional para verificar si se guardaron bien los mozos en mozos.dat
     return 0;
 }
@@ -232,8 +242,9 @@ void mostrarArchivo()
             cout<<"ID: "<<aux.id_mozo<<endl;
             cout<<"Contrasena guardada en el archivo: "<<aux.password<<endl;
         }
+        fclose(archivo);
     }
-    fclose(archivo);
+
 }
 
 int buscarIdMozo(const char nombre[])
@@ -356,5 +367,59 @@ void generarPlanillas()
         fechas=fechas->sig;
         delete temp;
     }
+}
+
+long buscarProducto(FILE* f, int codigo, Producto& p)
+{
+    fseek(f,0,SEEK_END);
+    long cant=ftell(f)/sizeof(Producto);
+    long ini=0, fin=cant-1;
+    while(ini<=fin)
+    {
+        long med=(ini+fin)/2;
+        fseek(f,med*sizeof(Producto),SEEK_SET);
+        fread(&p,sizeof(Producto),1,f);
+        if(p.codigo==codigo) return med;
+        if(p.codigo<codigo) ini=med+1;
+        else fin=med-1;
+    }
+    return -1;
+}
+
+void actualizarStock()
+{
+    FILE* inv=fopen("inventario.dat","rb+");
+    FILE* hist=fopen("comandas_historicas.dat","rb");
+    if(inv==NULL || hist==NULL)
+    {
+        cout<<"No se pudo abrir inventario.dat o comandas_historicas.dat"<<endl;
+        if(inv!=NULL) fclose(inv);
+        if(hist!=NULL) fclose(hist);
+        return;
+    }
+    comandasHistoricas h;
+    Producto p;
+    while(fread(&h,sizeof(comandasHistoricas),1,hist)==1)
+    {
+        long pos=buscarProducto(inv,h.codigoProducto,p);
+        if(pos==-1)
+        {
+            cout<<"Producto "<<h.codigoProducto<<" no existe en el inventario"<<endl;
+        }
+        else
+        {
+            p.stockActual-=h.cantidad;
+            if(p.stockActual<0)
+            {
+                cout<<"Stock negativo en producto "<<p.codigo<<", se deja en 0"<<endl;
+                p.stockActual=0;
+            }
+            fseek(inv,pos*sizeof(Producto),SEEK_SET);
+            fwrite(&p,sizeof(Producto),1,inv);
+            fflush(inv);
+        }
+    }
+    fclose(hist);
+    fclose(inv);
 }
 
