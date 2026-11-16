@@ -3,7 +3,7 @@
 
 using namespace std;
 
-//Tiene que ser identica a la struct de ventas.cpp
+//tiene que ser identica a la estructura de ventas.cpp
 struct comanda {
     int id_mozo;
     int codigo_producto;
@@ -13,9 +13,6 @@ struct comanda {
 
 void armarNombreDiario(int dia, int mes, int anio, char nombre[]);
 void armarNombreSemanal(int semana, int mes, char nombre[]);
-int contarComandas(int dia, int mes, int anio);
-void copiarComandas(int dia, int mes, int anio, comanda v[], int &pos);
-void ordenarComandas(comanda v[], int n);
 
 int main() {
     int semana, mes, anio;
@@ -36,44 +33,42 @@ int main() {
     cout << "Ingrese el ultimo dia que se va a cerrar: ";
     cin >> diaFin;
 
-    if(semana < 1 || mes < 1 || mes > 12 || anio < 1 || diaInicio < 1 || diaFin > 31 || diaInicio > diaFin) {
-        cout << "Error: los datos ingresados no son validos."
-             << endl;
+    if(semana < 1 || mes < 1 || mes > 12 || anio < 1 || diaInicio < 1 || diaInicio > 31 
+        ||diaFin < 1 || diaFin > 31 || diaInicio > diaFin || diaFin - diaInicio > 6)
+    {
+        cout << "Error: los datos ingresados no son validos." << endl;
         return 1;
     }
 
-    // PRIMER RECORRIDO: contamos todas las comandas.
-    int total = 0;
+    int cantidadDias = diaFin - diaInicio + 1;
 
-    for(int dia = diaInicio; dia <= diaFin; dia++)
-    {
-        total += contarComandas(dia, mes, anio);
+    //arreglos para manejar los archivos diarios.
+    FILE *archivos[7];
+    comanda actual[7];
+    int leido[7];
+
+    //abrimos las planillas diarias y leemos el primer registro de cada una.
+    for(int i = 0; i < cantidadDias; i++) {
+        char nombre[40];
+
+        armarNombreDiario(diaInicio + i, mes, anio, nombre);
+
+        archivos[i] = fopen(nombre, "rb");
+
+        if(archivos[i] == NULL) {
+            cout << "No se pudo abrir " << nombre << endl;
+            leido[i] = 0;
+        }
+        else
+        {
+            leido[i] = fread(&actual[i],
+                             sizeof(comanda), 1, archivos[i]);
+        }
     }
 
-    cout << "Cantidad de comandas encontradas: "
-         << total << endl;
-
-    // Reservamos memoria para todas las comandas.
-    comanda *v = NULL;
-
-    if(total > 0)
-    {
-        v = new comanda[total];
-    }
-
-    // SEGUNDO RECORRIDO: copiamos todas las comandas.
-    int pos = 0;
-
-    for(int dia = diaInicio; dia <= diaFin; dia++)
-    {
-        copiarComandas(dia, mes, anio, v, pos);
-    }
-
-    // Ordenamos todas las comandas por numero de mozo.
-    ordenarComandas(v, pos);
-
-    // Creamos la planilla semanal.
+    //creamos la planilla semanal.
     char nombreSemanal[40];
+
     armarNombreSemanal(semana, mes, nombreSemanal);
 
     FILE *semanal = fopen(nombreSemanal, "wb");
@@ -82,15 +77,62 @@ int main() {
         cout << "Error: no se pudo crear la planilla semanal."
              << endl;
 
-        delete[] v;
+        for(int i = 0; i < cantidadDias; i++)
+        {
+            if(archivos[i] != NULL)
+            {
+                fclose(archivos[i]);
+            }
+        }
+
         return 1;
     }
 
-    if(pos > 0) {
-        fwrite(v, sizeof(comanda), pos, semanal);
+    // apareo: buscamos siempre el registro con menor numero de mozo entre los registros actuales.
+    while(true) {
+        int menor = -1;
+
+        for(int i = 0; i < cantidadDias; i++) {
+            if(leido[i] == 1) {
+                if(menor == -1 ||actual[i].id_mozo < actual[menor].id_mozo){
+                    menor = i;
+                }
+            }
+        }
+
+        //si no quedan registros en ningun archivo, terminamos el apareo.
+        if(menor == -1) {
+            break;
+        }
+
+        //escribimos el registro de menor mozo.
+        if(fwrite(&actual[menor], sizeof(comanda), 1, semanal) != 1) {
+            cout << "Error al escribir la planilla semanal."
+                 << endl;
+
+            fclose(semanal);
+
+            for(int i = 0; i < cantidadDias; i++) {
+                if(archivos[i] != NULL) {
+                    fclose(archivos[i]);
+                }
+            }
+
+            return 1;
+        }
+
+        // avanzamos solamente el archivo del registro que acabamos de escribir.
+        leido[menor] = fread(&actual[menor], sizeof(comanda), 1, archivos[menor]);
     }
+
+    // cerramos todos los archivos diarios.
+    for(int i = 0; i < cantidadDias; i++) {
+        if(archivos[i] != NULL) {
+            fclose(archivos[i]);
+        }
+    }
+
     fclose(semanal);
-    delete[] v;
 
     cout << "Cierre realizado correctamente." << endl;
     cout << "Archivo generado: " << nombreSemanal << endl;
@@ -98,74 +140,14 @@ int main() {
     return 0;
 }
 
-// Construye el nombre de cada planilla diaria.
+// construye el nombre de cada planilla diaria.
 void armarNombreDiario(int dia, int mes, int anio, char nombre[]) {
-    sprintf(nombre, "comandas_%02d-%02d-%04d.dat", dia, mes, anio);
+    sprintf(nombre, "comandas_%02d-%02d-%04d.dat",
+            dia, mes, anio);
 }
 
-// Construye el nombre de la planilla semanal.
+//construye el nombre de la planilla semanal.
 void armarNombreSemanal(int semana, int mes, char nombre[]) {
-    sprintf(nombre, "comandas_semana_s%d-%02d.dat",
-            semana, mes);
+    sprintf(nombre, "comandas_semana_s%d-%02d.dat", semana, mes);
 }
-
-// Cuenta los registros de una planilla diaria.
-int contarComandas(int dia, int mes, int anio) {
-    char nombre[40];
-
-    armarNombreDiario(dia, mes, anio, nombre);
-
-    FILE *archivo = fopen(nombre, "rb");
-
-    if(archivo == NULL)
-    {
-        cout << "No existe la planilla " << nombre << endl;
-        return 0;
-    }
-
-    fseek(archivo, 0, SEEK_END);
-
-    int cantidad = ftell(archivo) / sizeof(comanda);
-
-    fclose(archivo);
-
-    return cantidad;
-}
-
-// Lee una planilla diaria y copia sus registros al arreglo
-void copiarComandas(int dia, int mes, int anio, comanda v[], int &pos) {
-    
-    char nombre[40];
-
-    armarNombreDiario(dia, mes, anio, nombre);
-
-    FILE *archivo = fopen(nombre, "rb");
-
-    if(archivo == NULL) {
-        return;
-    }
-
-    comanda aux;
-
-    while(fread(&aux, sizeof(comanda), 1, archivo) == 1) {
-        v[pos] = aux;
-        pos++;
-    }
-
-    fclose(archivo);
-}
-
-// Ordena las comandas por inserción, segun el numero de mozo
-void ordenarComandas(comanda v[], int n) {
-    for(int i = 1; i < n; i++) {
-        comanda clave = v[i];
-        int j = i - 1;
-
-        while(j >= 0 && v[j].id_mozo > clave.id_mozo) {
-            v[j + 1] = v[j];
-            j--;
-        }
-
-        v[j + 1] = clave;
-    }
-}
+ 
